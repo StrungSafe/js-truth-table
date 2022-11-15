@@ -1,0 +1,63 @@
+<html>
+<head>
+    <title>JS Truth Table</title>
+</head>
+<body>
+    <div>
+        <h1>Hello World</h1>
+        <h3 id="timestamp"></h3>
+        <table id="truth-table"></table>
+    </div>
+</body>
+<script>
+    const { log } = console;
+    const variables = {
+        touched: true,
+        error: true,
+        errorOverride: true,
+    };
+
+    const eString = '(touched && (error || errorOverride || null)) || errorOverride';
+    const newString = 'touched && error || errorOverride';
+    const e = ({touched, error, errorOverride}) => (touched && (error || errorOverride || null)) || errorOverride;
+    const newE = ({touched, error, errorOverride}) => touched && error || errorOverride;
+
+    const keys = Object.keys(variables);
+
+    log(`${keys.join(' | ')} = ${eString}`);
+
+    const truths = [];
+
+    for(let i = 0; i < Math.pow(2, keys.length); i++) {
+        const inner = [];
+        for(let k = keys.length - 1; k >= 0; k--) {
+            inner.push(i % Math.pow(2, k + 1) >= Math.pow(2, k));
+        }
+        truths.push(inner);
+    }
+
+    let truthTableHtml = "<tr>";
+    for(let i = 0; i < keys.length; i++) {
+        truthTableHtml += `<th>${keys[i]}</th>`;
+    }
+    truthTableHtml += `<th>${eString}</th><th>${newString}</th>`;
+    truthTableHtml += "</tr>"
+
+    for(let i = 0; i < truths.length; i++) {
+        truthTableHtml += "<tr>";
+        const truth = truths[i];
+        for(let k = 0; k < truth.length; k++) {
+            const key = keys[k];
+            variables[key] = truth[k];
+            truthTableHtml += `<td>${truth[k] ? 'T' : 'F'}</td>`;
+        }
+        log(`${keys.map(key => variables[key]).join(' | ')} = ${e(variables)} = ${newE(variables)}`);
+        truthTableHtml += `<td>${e(variables) ? 'T' : 'F'}</td><td>${newE(variables) ? 'T' : 'F'}</td></tr>`;
+    }
+
+    truthTableHtml += "</tr>";
+
+    document.getElementById("timestamp").innerText = `Updated: ${new Date()}`;
+    document.getElementById("truth-table").innerHTML = truthTableHtml;
+</script>
+</html>
