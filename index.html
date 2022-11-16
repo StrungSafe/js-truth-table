@@ -47,6 +47,10 @@
         color: red;
         font-weight: bold;
     }
+
+    ol li {
+        margin: 0 33%;
+    }
 </style>
 
 <head>
@@ -72,14 +76,21 @@
         </section>
         <section>
             <label>Initial Equation</label>
-            <input id="init-equation" type="text" /> **use v.
+            <input id="init-equation" type="text" /> **use v.{your variable}
         </section>
         <section>
             <label>New Equation</label>
-            <input id="new-equation" type="text" /> **use v.
+            <input id="new-equation" type="text" /> **use v.{your variable}
         </section>
         <section>
             <input id="run" type="button" onClick="run()" class="button" value="Run" />
+        </section>
+        <section>
+            <ol>
+                <li>Add the variables you want to use in your statements</li>
+                <li>Add your initial statement and possibly a new statement</li>
+                <li>Press run and analyze the results</li>
+            </ol>
         </section>
     </div>
     <div id="error">
@@ -192,7 +203,7 @@
         setup.classList.remove("--hide");
         variables = {};
     };
-    
+
     const run = () => {
         errorMessage.innerText = "";
         try {
