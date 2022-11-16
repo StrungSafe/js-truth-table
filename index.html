@@ -1,63 +1,133 @@
 <html>
+    <style>
+        body {
+            align-items: center;
+            text-align: center;
+        }
+
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            margin: auto;
+        }
+
+        th {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        td {
+            text-align: center;
+        }
+
+        #compare-result {
+            margin-top: 1rem;
+            font-weight: bold;
+        }
+
+        .--same-results {
+            color: green;
+        }
+
+        .--different-results {
+            color: red;
+        }
+
+        .--hide {
+            display: none;
+        }
+    </style>
 <head>
     <title>JS Truth Table</title>
 </head>
 <body>
     <div>
-        <h1>Hello World</h1>
+        <h1>Hello JS Truth Table</h1>
         <h3 id="timestamp"></h3>
         <table id="truth-table"></table>
+        <div id="compare-result" class="--same-results --hide">Results are the same</div>
     </div>
 </body>
 <script>
-    const { log } = console;
+    //setup
     const variables = {
-        touched: true,
-        error: true,
-        errorOverride: true,
+        var1: true,
+        var2: true,
+        var3: true,
     };
 
-    const eString = '(touched && (error || errorOverride || null)) || errorOverride';
-    const newString = 'touched && error || errorOverride';
-    const e = ({touched, error, errorOverride}) => (touched && (error || errorOverride || null)) || errorOverride;
-    const newE = ({touched, error, errorOverride}) => touched && error || errorOverride;
+    const initEquationString = '(var1 && (var2 || var3 || null)) || var3';
+    const newEquationString = 'var1 && var2 || var3';
+    const initEquation = ({var1, var2, var3} = variables) => (var1 && (var2 || var3 || null)) || var3;
+    const newEquation = ({var1, var2, var3} = variables) => var1 && var2 || var3;
 
-    const keys = Object.keys(variables);
+    //methods
+    const getTruths = count => {
+        const truths = [];
 
-    log(`${keys.join(' | ')} = ${eString}`);
-
-    const truths = [];
-
-    for(let i = 0; i < Math.pow(2, keys.length); i++) {
-        const inner = [];
-        for(let k = keys.length - 1; k >= 0; k--) {
-            inner.push(i % Math.pow(2, k + 1) >= Math.pow(2, k));
+        for(let i = 0; i < Math.pow(2, count); i++) {
+            const inner = [];
+            for(let k = count - 1; k >= 0; k--) {
+                inner.push(i % Math.pow(2, k + 1) >= Math.pow(2, k));
+            }
+            truths.push(inner);
         }
-        truths.push(inner);
-    }
+        return truths;
+    };
 
-    let truthTableHtml = "<tr>";
-    for(let i = 0; i < keys.length; i++) {
-        truthTableHtml += `<th>${keys[i]}</th>`;
-    }
-    truthTableHtml += `<th>${eString}</th><th>${newString}</th>`;
-    truthTableHtml += "</tr>"
+    const getTruthSymbol = value => value ? 'T' : 'F';
 
-    for(let i = 0; i < truths.length; i++) {
-        truthTableHtml += "<tr>";
+    const getHeader = keys => {
+        let header = "<tr>";
+        for(let i = 0; i < keys.length; i++) {
+            header += `<th>${keys[i]}</th>`;
+        }
+        header += `<th>${initEquationString}</th><th>${newEquationString}</th>`;
+        header += "</tr>"
+        return header;
+    };
+
+    const getRowColumn = (value, shouldStyle = true) => {
+        const style = shouldStyle ? value ? "--same-results" : "--different-results" : "";
+        return `<td class="${style}">${getTruthSymbol(value)}</td>`;
+    };
+
+    const getRow = ({ i, truths, keys }) => {
+        let row = "<tr>";
         const truth = truths[i];
         for(let k = 0; k < truth.length; k++) {
             const key = keys[k];
             variables[key] = truth[k];
-            truthTableHtml += `<td>${truth[k] ? 'T' : 'F'}</td>`;
+            row += getRowColumn(truth[k], false);
         }
-        log(`${keys.map(key => variables[key]).join(' | ')} = ${e(variables)} = ${newE(variables)}`);
-        truthTableHtml += `<td>${e(variables) ? 'T' : 'F'}</td><td>${newE(variables) ? 'T' : 'F'}</td></tr>`;
+        row += getRowColumn(initEquation());
+        row += getRowColumn(newEquation());
+        row += "</tr>";
+        return row;
+    };
+
+    //DOM
+    const compareResults = document.getElementById("compare-result");
+    const timestamp = document.getElementById("timestamp");
+    const table = document.getElementById("truth-table");
+
+    //consts    
+    const keys = Object.keys(variables);
+    const truths = getTruths(keys.length);
+
+    //work
+    let truthTableHtml = getHeader(keys);
+
+    for(let i = 0; i < truths.length; i++) {
+        truthTableHtml += getRow({ truths, keys, i })
+        if(initEquation() != newEquation()) {
+            compareResults.innerText = "Results are not the same";
+            compareResults.classList.add("--different-results");
+        }
     }
 
-    truthTableHtml += "</tr>";
-
-    document.getElementById("timestamp").innerText = `Updated: ${new Date()}`;
-    document.getElementById("truth-table").innerHTML = truthTableHtml;
+    table.innerHTML = truthTableHtml;
+    compareResults.classList.remove("--hide");
+    timestamp.innerText = `Updated: ${new Date()}`;
 </script>
 </html>
