@@ -42,6 +42,11 @@
     section {
         margin-top: 1rem;
     }
+
+    #error-msg {
+        color: red;
+        font-weight: bold;
+    }
 </style>
 
 <head>
@@ -59,23 +64,26 @@
         <input id="reset" type="button" onClick="reset()" value="Reset" />
     </div>
     <div id="setup">
-        <section id="variables">
+        <section id="added-variables">
         </section>
         <section>
             <input id="new-var" type="text" />
-            <input id="add-new-var" type="button" onClick="add()" value="TODO: Add" />
+            <input id="add-new-var" type="button" onClick="add()" value="Add" />
         </section>
         <section>
             <label>Initial Equation</label>
-            <input id="init-equation" type="text" value="(var1 && (var2 || var3 || null)) || var3" />
+            <input id="init-equation" type="text" /> **use v.
         </section>
         <section>
             <label>New Equation</label>
-            <input id="new-equation" type="text" value="var1 && var2 || var3" />
+            <input id="new-equation" type="text" /> **use v.
         </section>
         <section>
             <input id="run" type="button" onClick="run()" class="button" value="Run" />
         </section>
+    </div>
+    <div id="error">
+        <p id="error-msg"></p>
     </div>
 </body>
 <script>
@@ -86,20 +94,20 @@
     const compareResults = document.getElementById("compare-result");
 
     const setup = document.getElementById("setup");
+    const addedVariables = document.getElementById("added-variables");
     const newVar = document.getElementById("new-var");
     const initEquation = document.getElementById("init-equation");
     const newEquation = document.getElementById("new-equation");
 
-    //setup
-    const variables = {
-        var1: true,
-        var2: true,
-        var3: true,
-    };
+    const errorMessage = document.getElementById("error-msg");
+
+    //state
+    // TODO: Don't require v. to access the variables
+    let variables = { };
 
     //methods
-    const evalInitEquation = ({ var1, var2, var3 } = variables) => eval(initEquation.value);
-    const evalNewEquation = ({ var1, var2, var3 } = variables) => eval(newEquation.value);
+    const evalInitEquation = (v = variables) => eval(initEquation.value);
+    const evalNewEquation = (v = variables) => eval(newEquation.value);
 
     const getTruths = count => {
         const truths = [];
@@ -145,19 +153,7 @@
         return row;
     };
 
-    //DOM methods
-    const add = () => {
-        alert('add');
-    };
-
-    const reset = () => {
-        results.classList.add("--hide");
-        setup.classList.remove("--hide");
-    };
-
-    //work
-    const run = () => {
-        //TODO: catch errors
+    const updateTruthTable = () => {
         const keys = Object.keys(variables);
         const truths = getTruths(keys.length);
 
@@ -172,12 +168,45 @@
         }
 
         table.innerHTML = truthTableHtml;
-        results.classList.remove("--hide");
-        setup.classList.add("--hide");
+    };
+
+    const getAddedVariables = variables => {
+        const keys = Object.keys(variables);
+        let html = "";
+        keys.forEach(key => html += `<p>${key}</p>`)
+        return html;
+    };
+
+    const updateTime = () => {
         timestamp.innerText = `Updated: ${new Date()}`;
     };
 
-    timestamp.innerText = `Updated: ${new Date()}`;
+    //DOM methods
+    const add = () => {
+        variables[newVar.value] = true;
+        addedVariables.innerHTML = getAddedVariables(variables);
+    };
+
+    const reset = () => {
+        results.classList.add("--hide");
+        setup.classList.remove("--hide");
+        variables = {};
+    };
+    
+    const run = () => {
+        errorMessage.innerText = "";
+        try {
+            updateTruthTable();
+
+            results.classList.remove("--hide");
+            setup.classList.add("--hide");
+        } catch(e) {
+            errorMessage.innerText = e;
+        }
+        updateTime();
+    };
+
+    updateTime();
 </script>
 
 </html>
