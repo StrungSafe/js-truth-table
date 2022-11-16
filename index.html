@@ -76,11 +76,11 @@
         </section>
         <section>
             <label>Initial Equation</label>
-            <input id="init-equation" type="text" /> **use v.{your variable}
+            <input id="init-equation" type="text" />
         </section>
         <section>
             <label>New Equation</label>
-            <input id="new-equation" type="text" /> **use v.{your variable}
+            <input id="new-equation" type="text" />
         </section>
         <section>
             <input id="run" type="button" onClick="run()" class="button" value="Run" />
@@ -117,8 +117,26 @@
     let variables = { };
 
     //methods
-    const evalInitEquation = (v = variables) => eval(initEquation.value);
-    const evalNewEquation = (v = variables) => eval(newEquation.value);
+    const getEvalStatement = (v, equation) => {
+        const keys = Object.keys(v);
+        let statement = "";
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            statement += `const ${key} = ${v[key]};`;
+        }
+        statement += equation;
+        return 
+    };
+
+    const evalInitEquation = (v = variables) => {
+        const statement = getEvalStatement(v, initEquation.value);
+        return eval(statement);
+    };
+
+    const evalNewEquation = (v = variables) => {
+        const statement = getEvalStatement(v, newEquation.value);
+        return eval(statement);
+    };
 
     const getTruths = count => {
         const truths = [];
@@ -192,8 +210,16 @@
         timestamp.innerText = `Updated: ${new Date()}`;
     };
 
+    const illegalNames = ["null"];
+
     //DOM methods
     const add = () => {
+        const variable = newVar.value;
+        if(illegalNames.includes(variable)) {
+            alert('illegal name added');
+            return;
+        }
+
         variables[newVar.value] = true;
         addedVariables.innerHTML = getAddedVariables(variables);
     };
