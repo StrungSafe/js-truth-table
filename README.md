@@ -1,21 +1,16 @@
-# js-truth-table
+# JS Truth Table Generator
 
-A truth table generator based in javascript that'll help you test your truth statements
+An easy web based tool that dynamically generates a truth table for javascript equations and can compare equation result's too.
 
-## Using
+## How To Use
 
-Load index.html in browser
-Edit index.html
-All the data that needs to be modified is under the 'setup' comment (and up to the next comment)
-Update 'variables' to match what is used in your equations
-Update 'initEquation' and 'newEquation' to your truth statements and corresponding strings to have the html table match
-Reload the page
+There are two easy ways to view the page.
 
-## How
+### Hosted
 
-The truth table is dynamically generated based on the number of properties provided in 'variables'
-Run the generated truth table through the equations and compare the results
+1. Open [preview](https://htmlpreview.github.io/?https://github.com/StrungSafe/js-truth-table/blob/main/index.html)
 
-## Why
+### Locally
 
-Implemented in the browser using javascript to allow a direct test
+1. Download or clone the repo
+2. Open index.html in browser
