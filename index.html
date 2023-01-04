@@ -65,6 +65,11 @@
         font-size: small;
         bottom: 0;
     }
+
+    div#main {
+        position: absolute;
+        width: 100%;
+    }
 </style>
 
 <head>
@@ -72,44 +77,46 @@
 </head>
 
 <body>
-    <div id="header">
-        <h1>Hello JS Truth Table</h1>
-    </div>
-    <div id="results-body" class="--hide">
-        <table id="truth-table"></table>
-        <div id="compare-result" class="--same-results">Results are the same</div>
-        <input type="button" onClick="reset()" value="Reset" />
-    </div>
-    <div id="setup-body">
-        <section id="added-variables">
-        </section>
-        <section>
-            <input id="new-var" type="text" />
-            <input id="add-new-var-btn" type="button" onClick="add()" value="Add" />
-        </section>
-        <section>
-            <label>Initial Equation</label>
-            <input id="init-equation" type="text" />
-        </section>
-        <section>
-            <label>New Equation</label>
-            <input id="new-equation" type="text" />
-        </section>
-        <section>
-            <input id="run-btn" type="button" onClick="run()" class="button" value="Run" />
+    <div id="main">
+        <div id="header">
+            <h1>Hello JS Truth Table</h1>
+        </div>
+        <div id="results-body" class="--hide">
+            <table id="truth-table"></table>
+            <div id="compare-result" class="--same-results">Results are the same</div>
             <input type="button" onClick="reset()" value="Reset" />
-        </section>
-        <section id="how-to">
-            <ol>
-                <li>Add your variables used in your statements</li>
-                <li>Add your test statements</li>
-                <li>Press run</li>
-                <li>Enjoy the results</li>
-            </ol>
-        </section>
-    </div>
-    <div>
-        <p id="error-msg"></p>
+        </div>
+        <div id="setup-body">
+            <section id="added-variables">
+            </section>
+            <section>
+                <input id="new-var" type="text" />
+                <input id="add-new-var-btn" type="button" onClick="add()" value="Add" />
+            </section>
+            <section>
+                <label>Initial Equation</label>
+                <input id="init-equation" type="text" />
+            </section>
+            <section>
+                <label>New Equation</label>
+                <input id="new-equation" type="text" />
+            </section>
+            <section>
+                <input id="run-btn" type="button" onClick="run()" class="button" value="Run" />
+                <input type="button" onClick="reset()" value="Reset" />
+            </section>
+            <section id="how-to">
+                <ol>
+                    <li>Add your variables used in your statements</li>
+                    <li>Add your test statements</li>
+                    <li>Press run</li>
+                    <li>Enjoy the results</li>
+                </ol>
+            </section>
+        </div>
+        <div>
+            <p id="error-msg"></p>
+        </div>
     </div>
     <div id="footer">
         <p id="timestamp">
