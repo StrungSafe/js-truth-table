@@ -112,6 +112,9 @@
 
     const errorMessage = document.getElementById("error-msg");
 
+    //logging
+    const log = () => {};
+
     //state
     // TODO: Don't require v. to access the variables
     let variables = { };
@@ -125,7 +128,7 @@
             statement += `const ${key} = ${v[key]};`;
         }
         statement += equation;
-        return 
+        return statement;
     };
 
     const evalInitEquation = (v = variables) => {
