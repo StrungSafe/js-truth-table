@@ -3,26 +3,41 @@
     body {
         align-items: center;
         text-align: center;
+        position: relative;
     }
 
-    table,
-    th,
-    td {
+    section {
+        margin-top: 1rem;
+    }
+
+    .--hide {
+        display: none;
+    }
+
+    section#how-to ol {
+        margin: 0 33%;
+    }
+
+    section#added-variables span:not(:last-child) {
+        padding-right: 0.5rem;
+    }
+
+    table#truth-table, th, td {
         border: 1px solid black;
         border-collapse: collapse;
         margin: auto;
     }
 
-    th {
+    table#truth-table th {
         padding-left: 1rem;
         padding-right: 1rem;
     }
 
-    td {
+    table#truth-table td {
         text-align: center;
     }
 
-    #compare-result {
+    div#compare-result {
         margin-top: 1rem;
         font-weight: bold;
     }
@@ -35,21 +50,20 @@
         color: red;
     }
 
-    .--hide {
-        display: none;
-    }
-
-    section {
-        margin-top: 1rem;
-    }
-
     #error-msg {
         color: red;
         font-weight: bold;
     }
 
-    ol li {
-        margin: 0 33%;
+    div#footer {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+    }
+
+    #timestamp {
+        font-size: small;
+        bottom: 0;
     }
 </style>
 
@@ -58,21 +72,20 @@
 </head>
 
 <body>
-    <div>
+    <div id="header">
         <h1>Hello JS Truth Table</h1>
-        <h3 id="timestamp"></h3>
     </div>
-    <div id="results" class="--hide">
+    <div id="results-body" class="--hide">
         <table id="truth-table"></table>
         <div id="compare-result" class="--same-results">Results are the same</div>
-        <input id="reset" type="button" onClick="reset()" value="Reset" />
+        <input type="button" onClick="reset()" value="Reset" />
     </div>
-    <div id="setup">
+    <div id="setup-body">
         <section id="added-variables">
         </section>
         <section>
             <input id="new-var" type="text" />
-            <input id="add-new-var" type="button" onClick="add()" value="Add" />
+            <input id="add-new-var-btn" type="button" onClick="add()" value="Add" />
         </section>
         <section>
             <label>Initial Equation</label>
@@ -83,28 +96,34 @@
             <input id="new-equation" type="text" />
         </section>
         <section>
-            <input id="run" type="button" onClick="run()" class="button" value="Run" />
+            <input id="run-btn" type="button" onClick="run()" class="button" value="Run" />
+            <input type="button" onClick="reset()" value="Reset" />
         </section>
-        <section>
+        <section id="how-to">
             <ol>
-                <li>Add the variables you want to use in your statements</li>
-                <li>Add your initial statement and possibly a new statement</li>
-                <li>Press run and analyze the results</li>
+                <li>Add your variables used in your statements</li>
+                <li>Add your test statements</li>
+                <li>Press run</li>
+                <li>Enjoy the results</li>
             </ol>
         </section>
     </div>
-    <div id="error">
+    <div>
         <p id="error-msg"></p>
+    </div>
+    <div id="footer">
+        <p id="timestamp">
+        </p>
     </div>
 </body>
 <script>
     //DOM
-    const results = document.getElementById("results");
+    const results = document.getElementById("results-body");
     const timestamp = document.getElementById("timestamp");
     const table = document.getElementById("truth-table");
     const compareResults = document.getElementById("compare-result");
 
-    const setup = document.getElementById("setup");
+    const setup = document.getElementById("setup-body");
     const addedVariables = document.getElementById("added-variables");
     const newVar = document.getElementById("new-var");
     const initEquation = document.getElementById("init-equation");
@@ -116,7 +135,6 @@
     const log = () => {};
 
     //state
-    // TODO: Don't require v. to access the variables
     let variables = { };
 
     //methods
@@ -205,7 +223,7 @@
     const getAddedVariables = variables => {
         const keys = Object.keys(variables);
         let html = "";
-        keys.forEach(key => html += `<p>${key}</p>`)
+        keys.forEach(key => html += `<span>${key}</span>`)
         return html;
     };
 
@@ -223,6 +241,15 @@
         errorMessage.innerText = "";
     };
 
+    const updateAddedVariables = () => {
+        addedVariables.innerHTML = getAddedVariables(variables);
+    };
+
+    const clearAddedVariables = () => {
+        variables = {};
+        updateAddedVariables();
+    };
+
     //DOM methods
     const add = () => {
         clearError();
@@ -233,15 +260,22 @@
             updateError("dupe variable being added");
         } else {
             variables[newVar.value] = true;
-            addedVariables.innerHTML = getAddedVariables(variables);
+            updateAddedVariables();
         }
         newVar.value = "";
+        newVar.focus();
     };
 
     const reset = () => {
         results.classList.add("--hide");
         setup.classList.remove("--hide");
-        variables = {};
+        clearAddedVariables();
+        newVar.value = "";
+        initEquation.value = "";
+        newEquation.value = "";
+        newVar.focus();
+        clearError();
+        updateTime();
     };
 
     const run = () => {
