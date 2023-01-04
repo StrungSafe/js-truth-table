@@ -212,16 +212,27 @@
 
     const illegalNames = ["null"];
 
+    const updateError = error => {
+        errorMessage.innerText = error;
+    };
+
+    const clearError = () => {
+        errorMessage.innerText = "";
+    };
+
     //DOM methods
     const add = () => {
+        clearError();
         const variable = newVar.value;
         if(illegalNames.includes(variable)) {
-            alert('illegal name added');
-            return;
+            updateError("illegal name added");
+        } else if(variables[variable]) {
+            updateError("dupe variable being added");
+        } else {
+            variables[newVar.value] = true;
+            addedVariables.innerHTML = getAddedVariables(variables);
         }
-
-        variables[newVar.value] = true;
-        addedVariables.innerHTML = getAddedVariables(variables);
+        newVar.value = "";
     };
 
     const reset = () => {
@@ -231,14 +242,14 @@
     };
 
     const run = () => {
-        errorMessage.innerText = "";
+        clearError();
         try {
             updateTruthTable();
 
             results.classList.remove("--hide");
             setup.classList.add("--hide");
         } catch(e) {
-            errorMessage.innerText = e;
+            updateError(e);
         }
         updateTime();
     };
