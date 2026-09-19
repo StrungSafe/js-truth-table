@@ -1,312 +1,845 @@
-<html>
-<style>
-    html {
-        height: 100%;
-        width: 100%;
-    }
-
-    body {
-        align-items: center;
-        text-align: center;
-        position: relative;
-        height: 100%;
-        width: 100%;
-        margin: 0;
-    }
-
-    section {
-        margin-top: 1rem;
-    }
-
-    .--hide {
-        display: none;
-    }
-
-    section#how-to ol {
-        margin: 0 33%;
-    }
-
-    section#added-variables span:not(:last-child) {
-        padding-right: 0.5rem;
-    }
-
-    table#truth-table, th, td {
-        border: 1px solid black;
-        border-collapse: collapse;
-        margin: auto;
-    }
-
-    table#truth-table th {
-        padding-left: 1rem;
-        padding-right: 1rem;
-    }
-
-    table#truth-table td {
-        text-align: center;
-    }
-
-    div#compare-result {
-        margin-top: 1rem;
-        font-weight: bold;
-    }
-
-    .--same-results {
-        color: green;
-    }
-
-    .--different-results {
-        color: red;
-    }
-
-    #error-msg {
-        color: red;
-        font-weight: bold;
-    }
-
-    div#footer {
-        position: absolute;
-        bottom: 0;
-        width: 100%;
-    }
-
-    #timestamp {
-        font-size: small;
-        bottom: 0;
-    }
-
-    div#main {
-        position: absolute;
-        width: 100%;
-    }
-</style>
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
-    <title>JS Truth Table</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Truth Table Generator</title>
+    <style>
+        :root {
+            --bg: #f4f5f9;
+            --card-bg: #ffffff;
+            --text: #1c1e26;
+            --muted: #6b7280;
+            --border: #e2e4ea;
+            --accent: #4f46e5;
+            --accent-text: #ffffff;
+            --true-bg: #e6f6ec;
+            --true-text: #1a7f4b;
+            --false-bg: #fdeceb;
+            --false-text: #b3261e;
+            --error-bg: #fdeceb;
+            --error-text: #b3261e;
+            --diff-accent: #c2790a;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #14151c;
+                --card-bg: #1d1f29;
+                --text: #e7e8ee;
+                --muted: #9296a6;
+                --border: #33353f;
+                --accent: #7c78f0;
+                --accent-text: #14151c;
+                --true-bg: #103524;
+                --true-text: #6cd39a;
+                --false-bg: #3a1f1e;
+                --false-text: #f28b85;
+                --error-bg: #3a1f1e;
+                --error-text: #f28b85;
+                --diff-accent: #e8a33d;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100%;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2.5rem 1rem 4rem;
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            margin: 0 0 0.25rem;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            margin: 0 0 1.75rem;
+            font-size: 0.95rem;
+            text-align: center;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            width: 100%;
+            max-width: 640px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        }
+
+        .field {
+            margin-bottom: 1.1rem;
+        }
+
+        .field label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.35rem;
+        }
+
+        .field input[type="text"] {
+            width: 100%;
+            padding: 0.6rem 0.7rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+        }
+
+        .field input[type="text"]:focus {
+            outline: 2px solid var(--accent);
+            outline-offset: 1px;
+        }
+
+        .hint {
+            margin-top: 0.35rem;
+            font-size: 0.82rem;
+            color: var(--muted);
+            min-height: 1.1em;
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.1rem;
+            font-size: 0.9rem;
+        }
+
+        .checkbox-row input {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.6rem;
+            margin-top: 0.5rem;
+        }
+
+        button {
+            font-size: 0.95rem;
+            font-family: inherit;
+            border-radius: 8px;
+            padding: 0.6rem 1.1rem;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            color: var(--text);
+            cursor: pointer;
+        }
+
+        button:hover {
+            border-color: var(--accent);
+        }
+
+        button.primary {
+            background: var(--accent);
+            color: var(--accent-text);
+            border-color: var(--accent);
+            font-weight: 600;
+        }
+
+        .operators-card {
+            margin-top: 1.25rem;
+        }
+
+        .operators-card h2 {
+            font-size: 1rem;
+            margin: 0 0 0.2rem;
+        }
+
+        .operators-card .subtitle {
+            margin: 0 0 1rem;
+            font-size: 0.85rem;
+            text-align: left;
+        }
+
+        table.operators-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table.operators-table th,
+        table.operators-table td {
+            padding: 0.55rem 0.6rem;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+            font-size: 0.88rem;
+        }
+
+        table.operators-table th {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: var(--muted);
+        }
+
+        table.operators-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        table.operators-table td.op-symbol,
+        table.operators-table td.op-example {
+            font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+            white-space: nowrap;
+        }
+
+        table.operators-table td.op-word {
+            font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+            font-weight: 600;
+            color: var(--accent);
+            white-space: nowrap;
+        }
+
+        .operators-card p.note {
+            margin: 1rem 0 0;
+            font-size: 0.82rem;
+            color: var(--muted);
+        }
+
+        #error-msg {
+            display: none;
+            background: var(--error-bg);
+            color: var(--error-text);
+            padding: 0.6rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            margin-bottom: 1.1rem;
+        }
+
+        #error-msg.--show {
+            display: block;
+        }
+
+        #results-body {
+            width: 100%;
+            max-width: 640px;
+        }
+
+        #verdict {
+            display: none;
+            padding: 0.7rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        #verdict.--show {
+            display: block;
+        }
+
+        #verdict.--equivalent {
+            background: var(--true-bg);
+            color: var(--true-text);
+        }
+
+        #verdict.--not-equivalent {
+            background: var(--false-bg);
+            color: var(--false-text);
+        }
+
+        table#truth-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        table#truth-table th,
+        table#truth-table td {
+            padding: 0.5rem 0.8rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+            font-size: 0.92rem;
+        }
+
+        table#truth-table th {
+            background: var(--bg);
+            font-family: inherit;
+            font-weight: 600;
+        }
+
+        table#truth-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        table#truth-table tr.--diff-row td {
+            box-shadow: inset 0 2px 0 var(--diff-accent), inset 0 -2px 0 var(--diff-accent);
+        }
+
+        table#truth-table tr.--diff-row td:first-child {
+            box-shadow: inset 0 2px 0 var(--diff-accent), inset 0 -2px 0 var(--diff-accent), inset 2px 0 0 var(--diff-accent);
+        }
+
+        table#truth-table tr.--diff-row td:last-child {
+            box-shadow: inset 0 2px 0 var(--diff-accent), inset 0 -2px 0 var(--diff-accent), inset -2px 0 0 var(--diff-accent);
+        }
+
+        .cell-true {
+            background: var(--true-bg);
+            color: var(--true-text);
+            border-radius: 5px;
+        }
+
+        .cell-false {
+            background: var(--false-bg);
+            color: var(--false-text);
+            border-radius: 5px;
+        }
+
+        .results-actions {
+            display: flex;
+            justify-content: center;
+            gap: 0.6rem;
+            margin-top: 1.25rem;
+        }
+
+        .--hide {
+            display: none;
+        }
+
+        #timestamp {
+            margin-top: 2.5rem;
+            font-size: 0.78rem;
+            color: var(--muted);
+        }
+    </style>
 </head>
 
 <body>
-    <div id="main">
-        <div id="header">
-            <h1>Hello JS Truth Table</h1>
-        </div>
-        <div id="results-body" class="--hide">
-            <table id="truth-table"></table>
-            <div id="compare-result" class="--same-results">Results are the same</div>
-            <input type="button" onClick="reset()" value="Reset" />
-        </div>
-        <div id="setup-body">
-            <section id="added-variables">
-            </section>
-            <section>
-                <input id="new-var" type="text" />
-                <input id="add-new-var-btn" type="button" onClick="add()" value="Add" />
-            </section>
-            <section>
-                <label>Initial Equation</label>
-                <input id="init-equation" type="text" />
-            </section>
-            <section>
-                <label>New Equation</label>
-                <input id="new-equation" type="text" />
-            </section>
-            <section>
-                <input id="run-btn" type="button" onClick="run()" class="button" value="Run" />
-                <input type="button" onClick="reset()" value="Reset" />
-            </section>
-            <section id="how-to">
-                <ol>
-                    <li>Add your variables used in your statements</li>
-                    <li>Add your test statements</li>
-                    <li>Press run</li>
-                    <li>Enjoy the results</li>
-                </ol>
-            </section>
-        </div>
-        <div>
-            <p id="error-msg"></p>
+    <h1>Truth Table Generator</h1>
+    <p class="subtitle">Type a boolean expression and get its truth table. Variables are detected automatically.</p>
+
+    <div id="setup-body" class="card">
+        <form id="setup-form">
+            <div class="field">
+                <label for="expression">Expression</label>
+                <input id="expression" type="text" autocomplete="off"
+                    placeholder="e.g. p AND q, or p ∧ q, or NOT p OR q" />
+                <div class="hint" id="expression-hint"></div>
+            </div>
+
+            <div class="checkbox-row">
+                <input id="use-compare" type="checkbox" />
+                <label for="use-compare">Compare with another expression</label>
+            </div>
+
+            <div class="field --hide" id="compare-field">
+                <label for="compare-expression">Compare to</label>
+                <input id="compare-expression" type="text" autocomplete="off"
+                    placeholder="e.g. NOT (NOT p OR NOT q)" />
+                <div class="hint" id="compare-hint"></div>
+            </div>
+
+            <div id="error-msg"></div>
+
+            <div class="actions">
+                <button type="submit" class="primary">Build Table</button>
+                <button type="button" id="clear-btn">Clear</button>
+            </div>
+        </form>
+    </div>
+
+    <div id="operators-card" class="card operators-card">
+        <h2>Operators</h2>
+        <p class="subtitle">Type any of these into your expression — words and symbols both work.</p>
+        <table class="operators-table">
+            <thead>
+                <tr>
+                    <th>Meaning</th>
+                    <th>Word</th>
+                    <th>Symbol</th>
+                    <th>Also accepts</th>
+                    <th>Example</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Negation (not)</td>
+                    <td class="op-word">NOT</td>
+                    <td class="op-symbol">¬</td>
+                    <td class="op-symbol">!</td>
+                    <td class="op-example">NOT p</td>
+                </tr>
+                <tr>
+                    <td>Conjunction (and)</td>
+                    <td class="op-word">AND</td>
+                    <td class="op-symbol">∧</td>
+                    <td class="op-symbol">&amp;&amp;</td>
+                    <td class="op-example">p AND q</td>
+                </tr>
+                <tr>
+                    <td>Disjunction (or)</td>
+                    <td class="op-word">OR</td>
+                    <td class="op-symbol">∨</td>
+                    <td class="op-symbol">||</td>
+                    <td class="op-example">p OR q</td>
+                </tr>
+                <tr>
+                    <td>Exclusive or</td>
+                    <td class="op-word">XOR</td>
+                    <td class="op-symbol">⊕</td>
+                    <td class="op-symbol">^</td>
+                    <td class="op-example">p XOR q</td>
+                </tr>
+                <tr>
+                    <td>Implication</td>
+                    <td class="op-word">IMPLIES</td>
+                    <td class="op-symbol">→</td>
+                    <td class="op-symbol">-&gt;</td>
+                    <td class="op-example">p IMPLIES q</td>
+                </tr>
+                <tr>
+                    <td>Biconditional</td>
+                    <td class="op-word">IFF</td>
+                    <td class="op-symbol">↔</td>
+                    <td class="op-symbol">&lt;-&gt;</td>
+                    <td class="op-example">p IFF q</td>
+                </tr>
+                <tr>
+                    <td>Constants</td>
+                    <td class="op-word">TRUE / FALSE</td>
+                    <td class="op-symbol">—</td>
+                    <td class="op-symbol">—</td>
+                    <td class="op-example">p AND TRUE</td>
+                </tr>
+            </tbody>
+        </table>
+        <p class="note">Use parentheses to group, e.g. <code>p AND (q OR NOT r)</code>. Variable names can be any letters/digits (e.g. <code>p</code>, <code>q</code>, <code>isValid</code>).</p>
+    </div>
+
+    <div id="results-body" class="--hide">
+        <div id="verdict"></div>
+        <table id="truth-table"></table>
+        <div class="results-actions">
+            <button type="button" id="edit-btn">Edit Expression</button>
+            <button type="button" id="clear-btn-2">Clear</button>
         </div>
     </div>
-    <div id="footer">
-        <p id="timestamp">
-        </p>
-    </div>
+
+    <p id="timestamp"></p>
+
+    <script>
+        //DOM
+        const setupBody = document.getElementById("setup-body");
+        const setupForm = document.getElementById("setup-form");
+        const operatorsCard = document.getElementById("operators-card");
+        const resultsBody = document.getElementById("results-body");
+        const timestamp = document.getElementById("timestamp");
+        const table = document.getElementById("truth-table");
+        const verdict = document.getElementById("verdict");
+
+        const expressionInput = document.getElementById("expression");
+        const expressionHint = document.getElementById("expression-hint");
+        const useCompare = document.getElementById("use-compare");
+        const compareField = document.getElementById("compare-field");
+        const compareInput = document.getElementById("compare-expression");
+        const compareHint = document.getElementById("compare-hint");
+
+        const errorMessage = document.getElementById("error-msg");
+
+        const editBtn = document.getElementById("edit-btn");
+        const clearBtn = document.getElementById("clear-btn");
+        const clearBtn2 = document.getElementById("clear-btn-2");
+
+        //---- Parser ----
+        // Tokenizes and parses a small boolean-expression language (words or symbols)
+        // into an AST, without using eval().
+
+        class ParseError extends Error {
+            constructor(message, pos) {
+                super(message);
+                this.pos = pos;
+            }
+        }
+
+        const KEYWORDS = {
+            AND: "AND",
+            OR: "OR",
+            NOT: "NOT",
+            XOR: "XOR",
+            IMPLIES: "IMPLIES",
+            IFF: "IFF",
+            XNOR: "IFF",
+        };
+
+        const tokenize = input => {
+            const tokens = [];
+            const n = input.length;
+            let i = 0;
+
+            while (i < n) {
+                const ch = input[i];
+
+                if (/\s/.test(ch)) { i++; continue; }
+
+                if (input.startsWith("<->", i)) { tokens.push({ type: "IFF", pos: i }); i += 3; continue; }
+                if (input.startsWith("->", i)) { tokens.push({ type: "IMPLIES", pos: i }); i += 2; continue; }
+                if (input.startsWith("&&", i)) { tokens.push({ type: "AND", pos: i }); i += 2; continue; }
+                if (input.startsWith("||", i)) { tokens.push({ type: "OR", pos: i }); i += 2; continue; }
+
+                if (ch === "↔") { tokens.push({ type: "IFF", pos: i }); i++; continue; }
+                if (ch === "→") { tokens.push({ type: "IMPLIES", pos: i }); i++; continue; }
+                if (ch === "∧" || ch === "&") { tokens.push({ type: "AND", pos: i }); i++; continue; }
+                if (ch === "∨" || ch === "|") { tokens.push({ type: "OR", pos: i }); i++; continue; }
+                if (ch === "¬" || ch === "!") { tokens.push({ type: "NOT", pos: i }); i++; continue; }
+                if (ch === "⊕" || ch === "^") { tokens.push({ type: "XOR", pos: i }); i++; continue; }
+                if (ch === "(") { tokens.push({ type: "LPAREN", pos: i }); i++; continue; }
+                if (ch === ")") { tokens.push({ type: "RPAREN", pos: i }); i++; continue; }
+
+                if (ch === "0" || ch === "1") {
+                    tokens.push({ type: "CONST", value: ch === "1", pos: i });
+                    i++;
+                    continue;
+                }
+
+                if (/[A-Za-z_]/.test(ch)) {
+                    let j = i + 1;
+                    while (j < n && /[A-Za-z0-9_]/.test(input[j])) j++;
+                    const word = input.slice(i, j);
+                    const upper = word.toUpperCase();
+
+                    if (KEYWORDS[upper]) {
+                        tokens.push({ type: KEYWORDS[upper], pos: i });
+                    } else if (upper === "TRUE") {
+                        tokens.push({ type: "CONST", value: true, pos: i });
+                    } else if (upper === "FALSE") {
+                        tokens.push({ type: "CONST", value: false, pos: i });
+                    } else {
+                        tokens.push({ type: "VAR", name: word, pos: i });
+                    }
+                    i = j;
+                    continue;
+                }
+
+                throw new ParseError(`Unexpected character "${ch}"`, i);
+            }
+
+            tokens.push({ type: "EOF", pos: n });
+            return tokens;
+        };
+
+        // Grammar (lowest to highest precedence):
+        //   iff -> implies (IFF implies)*
+        //   implies -> xor (IMPLIES xor)*
+        //   xor -> or (XOR or)*
+        //   or -> and (OR and)*
+        //   and -> not (AND not)*
+        //   not -> NOT not | atom
+        //   atom -> VAR | CONST | '(' iff ')'
+        const parse = input => {
+            const tokens = tokenize(input);
+            let pos = 0;
+
+            const peek = () => tokens[pos];
+            const advance = () => tokens[pos++];
+            const expect = type => {
+                if (peek().type !== type) {
+                    throw new ParseError(`Expected "${type}" but found "${peek().type}"`, peek().pos);
+                }
+                return advance();
+            };
+
+            const parseBinary = (nextLevel, opTypes) => {
+                let left = nextLevel();
+                while (opTypes.includes(peek().type)) {
+                    const op = advance().type;
+                    const right = nextLevel();
+                    left = { type: "binary", op, left, right };
+                }
+                return left;
+            };
+
+            const parseIff = () => parseBinary(parseImplies, ["IFF"]);
+            const parseImplies = () => parseBinary(parseXor, ["IMPLIES"]);
+            const parseXor = () => parseBinary(parseOr, ["XOR"]);
+            const parseOr = () => parseBinary(parseAnd, ["OR"]);
+            const parseAnd = () => parseBinary(parseNot, ["AND"]);
+
+            const parseNot = () => {
+                if (peek().type === "NOT") {
+                    advance();
+                    return { type: "not", operand: parseNot() };
+                }
+                return parseAtom();
+            };
+
+            const parseAtom = () => {
+                const token = peek();
+                if (token.type === "VAR") { advance(); return { type: "var", name: token.name }; }
+                if (token.type === "CONST") { advance(); return { type: "const", value: token.value }; }
+                if (token.type === "LPAREN") {
+                    advance();
+                    const inner = parseIff();
+                    expect("RPAREN");
+                    return inner;
+                }
+                if (token.type === "EOF") {
+                    throw new ParseError("Expression is incomplete", token.pos);
+                }
+                throw new ParseError(`Unexpected "${token.type}"`, token.pos);
+            };
+
+            if (peek().type === "EOF") {
+                throw new ParseError("Expression is empty", 0);
+            }
+
+            const ast = parseIff();
+            if (peek().type !== "EOF") {
+                throw new ParseError(`Unexpected "${peek().type}" after expression`, peek().pos);
+            }
+            return ast;
+        };
+
+        const collectVariables = (node, seen, out) => {
+            if (node.type === "var") {
+                if (!seen.has(node.name)) {
+                    seen.add(node.name);
+                    out.push(node.name);
+                }
+            } else if (node.type === "not") {
+                collectVariables(node.operand, seen, out);
+            } else if (node.type === "binary") {
+                collectVariables(node.left, seen, out);
+                collectVariables(node.right, seen, out);
+            }
+        };
+
+        const evaluate = (node, env) => {
+            switch (node.type) {
+                case "const": return node.value;
+                case "var": return !!env[node.name];
+                case "not": return !evaluate(node.operand, env);
+                case "binary": {
+                    const left = evaluate(node.left, env);
+                    const right = evaluate(node.right, env);
+                    switch (node.op) {
+                        case "AND": return left && right;
+                        case "OR": return left || right;
+                        case "XOR": return left !== right;
+                        case "IMPLIES": return !left || right;
+                        case "IFF": return left === right;
+                    }
+                }
+            }
+        };
+
+        const describeError = (source, err) => {
+            if (err instanceof ParseError) {
+                const pos = Math.max(0, Math.min(err.pos, source.length));
+                return `${err.message} (at position ${pos + 1}: "${source.slice(Math.max(0, pos - 4), pos)}⟩${source.slice(pos, pos + 4)}")`;
+            }
+            return err.message || String(err);
+        };
+
+        //---- Truth table generation ----
+        const getTruthCombinations = count => {
+            const rows = [];
+            for (let i = 0; i < Math.pow(2, count); i++) {
+                const row = [];
+                for (let k = count - 1; k >= 0; k--) {
+                    row.push((i % Math.pow(2, k + 1)) >= Math.pow(2, k));
+                }
+                rows.push(row);
+            }
+            return rows;
+        };
+
+        const truthSymbol = value => (value ? "T" : "F");
+        const cellHtml = value => `<td class="${value ? "cell-true" : "cell-false"}">${truthSymbol(value)}</td>`;
+
+        //---- Live variable hint while typing ----
+        const updateHint = (input, hintEl) => {
+            const value = input.value.trim();
+            if (!value) { hintEl.textContent = ""; return; }
+            try {
+                const ast = parse(value);
+                const vars = [];
+                collectVariables(ast, new Set(), vars);
+                hintEl.textContent = vars.length ? `Variables: ${vars.join(", ")}` : "";
+            } catch (e) {
+                hintEl.textContent = "";
+            }
+        };
+
+        expressionInput.addEventListener("input", () => updateHint(expressionInput, expressionHint));
+        compareInput.addEventListener("input", () => updateHint(compareInput, compareHint));
+
+        useCompare.addEventListener("change", () => {
+            compareField.classList.toggle("--hide", !useCompare.checked);
+            if (!useCompare.checked) {
+                compareInput.value = "";
+                compareHint.textContent = "";
+            }
+        });
+
+        //---- Error display ----
+        const showError = message => {
+            errorMessage.textContent = message;
+            errorMessage.classList.add("--show");
+        };
+
+        const clearError = () => {
+            errorMessage.textContent = "";
+            errorMessage.classList.remove("--show");
+        };
+
+        //---- Main run ----
+        const buildTable = () => {
+            const exprSource = expressionInput.value.trim();
+            if (!exprSource) {
+                showError("Enter an expression first.");
+                return;
+            }
+
+            const compareSource = useCompare.checked ? compareInput.value.trim() : "";
+            if (useCompare.checked && !compareSource) {
+                showError("Enter a second expression to compare, or uncheck comparison.");
+                return;
+            }
+
+            let ast;
+            let compareAst = null;
+            try {
+                ast = parse(exprSource);
+            } catch (e) {
+                showError(describeError(exprSource, e));
+                return;
+            }
+            if (compareSource) {
+                try {
+                    compareAst = parse(compareSource);
+                } catch (e) {
+                    showError(describeError(compareSource, e));
+                    return;
+                }
+            }
+
+            const seen = new Set();
+            const variables = [];
+            collectVariables(ast, seen, variables);
+            if (compareAst) collectVariables(compareAst, seen, variables);
+
+            if (variables.length === 0) {
+                showError("Add at least one variable to your expression (e.g. p, q).");
+                return;
+            }
+            if (variables.length > 8) {
+                showError(`Too many variables (${variables.length}). Limit is 8 to keep the table a reasonable size.`);
+                return;
+            }
+
+            const combinations = getTruthCombinations(variables.length);
+
+            let headerHtml = "<tr>";
+            variables.forEach(v => { headerHtml += `<th>${v}</th>`; });
+            headerHtml += `<th>${exprSource}</th>`;
+            if (compareAst) headerHtml += `<th>${compareSource}</th>`;
+            headerHtml += "</tr>";
+
+            let diffCount = 0;
+            let bodyHtml = "";
+
+            combinations.forEach(row => {
+                const env = {};
+                variables.forEach((v, idx) => { env[v] = row[idx]; });
+
+                const result = evaluate(ast, env);
+                const compareResult = compareAst ? evaluate(compareAst, env) : null;
+                const isDiffRow = compareAst && result !== compareResult;
+                if (isDiffRow) diffCount++;
+
+                bodyHtml += `<tr class="${isDiffRow ? "--diff-row" : ""}">`;
+                row.forEach(value => { bodyHtml += cellHtml(value); });
+                bodyHtml += cellHtml(result);
+                if (compareAst) bodyHtml += cellHtml(compareResult);
+                bodyHtml += "</tr>";
+            });
+
+            table.innerHTML = headerHtml + bodyHtml;
+
+            if (compareAst) {
+                verdict.classList.add("--show");
+                if (diffCount === 0) {
+                    verdict.textContent = "The two expressions are equivalent for every row.";
+                    verdict.classList.add("--equivalent");
+                    verdict.classList.remove("--not-equivalent");
+                } else {
+                    verdict.textContent = `The two expressions differ on ${diffCount} of ${combinations.length} row(s).`;
+                    verdict.classList.add("--not-equivalent");
+                    verdict.classList.remove("--equivalent");
+                }
+            } else {
+                verdict.classList.remove("--show", "--equivalent", "--not-equivalent");
+            }
+
+            clearError();
+            setupBody.classList.add("--hide");
+            operatorsCard.classList.add("--hide");
+            resultsBody.classList.remove("--hide");
+            updateTimestamp();
+        };
+
+        const updateTimestamp = () => {
+            timestamp.textContent = `Updated: ${new Date().toLocaleString()}`;
+        };
+
+        const clearAll = () => {
+            expressionInput.value = "";
+            compareInput.value = "";
+            useCompare.checked = false;
+            compareField.classList.add("--hide");
+            expressionHint.textContent = "";
+            compareHint.textContent = "";
+            clearError();
+            setupBody.classList.remove("--hide");
+            operatorsCard.classList.remove("--hide");
+            resultsBody.classList.add("--hide");
+            expressionInput.focus();
+            updateTimestamp();
+        };
+
+        setupForm.addEventListener("submit", e => {
+            e.preventDefault();
+            buildTable();
+        });
+
+        editBtn.addEventListener("click", () => {
+            resultsBody.classList.add("--hide");
+            setupBody.classList.remove("--hide");
+            operatorsCard.classList.remove("--hide");
+            expressionInput.focus();
+        });
+
+        clearBtn.addEventListener("click", clearAll);
+        clearBtn2.addEventListener("click", clearAll);
+
+        updateTimestamp();
+    </script>
 </body>
-<script>
-    //DOM
-    const results = document.getElementById("results-body");
-    const timestamp = document.getElementById("timestamp");
-    const table = document.getElementById("truth-table");
-    const compareResults = document.getElementById("compare-result");
-
-    const setup = document.getElementById("setup-body");
-    const addedVariables = document.getElementById("added-variables");
-    const newVar = document.getElementById("new-var");
-    const initEquation = document.getElementById("init-equation");
-    const newEquation = document.getElementById("new-equation");
-
-    const errorMessage = document.getElementById("error-msg");
-
-    //logging
-    const log = () => {};
-
-    //state
-    let variables = { };
-
-    //methods
-    const getEvalStatement = (v, equation) => {
-        const keys = Object.keys(v);
-        let statement = "";
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            statement += `const ${key} = ${v[key]};`;
-        }
-        statement += equation;
-        return statement;
-    };
-
-    const evalInitEquation = (v = variables) => {
-        const statement = getEvalStatement(v, initEquation.value);
-        return eval(statement);
-    };
-
-    const evalNewEquation = (v = variables) => {
-        const statement = getEvalStatement(v, newEquation.value);
-        return eval(statement);
-    };
-
-    const getTruths = count => {
-        const truths = [];
-
-        for (let i = 0; i < Math.pow(2, count); i++) {
-            const inner = [];
-            for (let k = count - 1; k >= 0; k--) {
-                inner.push(i % Math.pow(2, k + 1) >= Math.pow(2, k));
-            }
-            truths.push(inner);
-        }
-        return truths;
-    };
-
-    const getTruthSymbol = value => value ? 'T' : 'F';
-
-    const getHeader = keys => {
-        let header = "<tr>";
-        for (let i = 0; i < keys.length; i++) {
-            header += `<th>${keys[i]}</th>`;
-        }
-        header += `<th>${initEquation.value}</th><th>${newEquation.value}</th>`;
-        header += "</tr>"
-        return header;
-    };
-
-    const getRowColumn = (value, shouldStyle = true) => {
-        const style = shouldStyle ? value ? "--same-results" : "--different-results" : "";
-        return `<td class="${style}">${getTruthSymbol(value)}</td>`;
-    };
-
-    const getRow = ({ i, truths, keys }) => {
-        let row = "<tr>";
-        const truth = truths[i];
-        for (let k = 0; k < truth.length; k++) {
-            const key = keys[k];
-            variables[key] = truth[k];
-            row += getRowColumn(truth[k], false);
-        }
-        row += getRowColumn(evalInitEquation());
-        row += getRowColumn(evalNewEquation());
-        row += "</tr>";
-        return row;
-    };
-
-    const updateTruthTable = () => {
-        const keys = Object.keys(variables);
-        const truths = getTruths(keys.length);
-
-        let truthTableHtml = getHeader(keys);
-
-        for (let i = 0; i < truths.length; i++) {
-            truthTableHtml += getRow({ truths, keys, i })
-            if (evalInitEquation() != evalNewEquation()) {
-                compareResults.innerText = "Results are not the same";
-                compareResults.classList.add("--different-results");
-            }
-        }
-
-        table.innerHTML = truthTableHtml;
-    };
-
-    const getAddedVariables = variables => {
-        const keys = Object.keys(variables);
-        let html = "";
-        keys.forEach(key => html += `<span>${key}</span>`)
-        return html;
-    };
-
-    const updateTime = () => {
-        timestamp.innerText = `Updated: ${new Date()}`;
-    };
-
-    const illegalNames = ["null"];
-
-    const updateError = error => {
-        errorMessage.innerText = error;
-    };
-
-    const clearError = () => {
-        errorMessage.innerText = "";
-    };
-
-    const updateAddedVariables = () => {
-        addedVariables.innerHTML = getAddedVariables(variables);
-    };
-
-    const clearAddedVariables = () => {
-        variables = {};
-        updateAddedVariables();
-    };
-
-    //DOM methods
-    const add = () => {
-        clearError();
-        const variable = newVar.value;
-        if(illegalNames.includes(variable)) {
-            updateError("illegal name added");
-        } else if(variables[variable]) {
-            updateError("dupe variable being added");
-        } else {
-            variables[newVar.value] = true;
-            updateAddedVariables();
-        }
-        newVar.value = "";
-        newVar.focus();
-    };
-
-    const reset = () => {
-        results.classList.add("--hide");
-        setup.classList.remove("--hide");
-        clearAddedVariables();
-        newVar.value = "";
-        initEquation.value = "";
-        newEquation.value = "";
-        newVar.focus();
-        clearError();
-        updateTime();
-    };
-
-    const run = () => {
-        clearError();
-        try {
-            updateTruthTable();
-
-            results.classList.remove("--hide");
-            setup.classList.add("--hide");
-        } catch(e) {
-            updateError(e);
-        }
-        updateTime();
-    };
-
-    updateTime();
-</script>
 
 </html>
